@@ -1,1 +1,5 @@
-
+[
+  { "id": 1, "name": "React Basics", "category": "Web Development" },
+  { "id": 2, "name": "Node.js Essentials", "category": "Backend Development" },
+  { "id": 3, "name": "AWS for Beginners", "category": "Cloud Computing" }
+]
