@@ -1,0 +1,16 @@
+{
+  "family": "backend-service",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "<ecr_repository_uri>/{{ENVIRONMENT}}/backend:latest",
+      "environment": [
+        { "name": "DB_USER", "value": "{{DB_USER}}" },
+        { "name": "DB_PASSWORD", "value": "{{DB_PASSWORD}}" },
+        { "name": "ENVIRONMENT", "value": "{{ENVIRONMENT}}" }
+      ],
+      "memory": 512,
+      "cpu": 256
+    }
+  ]
+}
