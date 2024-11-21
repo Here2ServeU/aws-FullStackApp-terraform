@@ -1,7 +1,11 @@
 # Full-Stack Application Deployment with Terraform, Amazon ECS, and CI/CD
 
 ## Overview
-This project demonstrates how to build and deploy a scalable full-stack application using Terraform for infrastructure provisioning, Amazon ECS for container orchestration, and a CI/CD pipeline for automation. The setup includes environment-specific configurations to ensure flexibility and scalability.
+This project demonstrates building and deploying the **T2S Courses** app using a full-stack architecture with Terraform for infrastructure provisioning, Amazon ECS for container orchestration, and CI/CD pipelines for automated deployment. 
+
+The application includes:
+- **Front-End**: A React-based course catalog.
+- **Back-End**: A Node.js/Express.js API for serving course data.
 
 ---
 
@@ -12,6 +16,19 @@ The architecture includes:
 - **Database**: Amazon RDS or DynamoDB.
 - **CI/CD**: GitHub Actions or AWS CodePipeline for automation.
 - **Monitoring**: Amazon CloudWatch for metrics and logs.
+
+---
+
+## Features of T2S Courses App
+
+### **Front-End**:
+- Display a list of courses.
+- Search and filter courses.
+- View course details.
+
+### **Back-End**:
+- API endpoint to fetch courses (`/api/courses`).
+- API endpoint to fetch course details by ID (`/api/courses/:id`).
 
 ---
 
@@ -34,97 +51,10 @@ The architecture includes:
 
 ---
 
-## 1. Organizing Variables in Terraform
+## Step 1: Clone the Repositories
 
-### 1.1 Define Variables in variables.tf
-Define variables in `variables.tf`:
-```hcl
-variable "environment" {
-  description = "Environment name (dev, stage, prod)"
-  type        = string
-}
-
-variable "region" {
-  description = "AWS region to deploy the infrastructure"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "ecs_cluster_name" {
-  description = "Name of the ECS cluster"
-  type        = string
-}
-
-variable "db_user" {
-  description = "Database username"
-  type        = string
-}
-
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
-}
-```
-
-### 1.2. Define Environment-Specific Variables in terraform.tfvars
-
-Create separate terraform.tfvars files for each environment.
-
-**dev.tfvars**
-```hcl
-environment       = "dev"
-region            = "us-east-1"
-vpc_cidr          = "10.0.0.0/16"
-ecs_cluster_name  = "dev-cluster"
-db_user           = "dev_user"
-db_password       = "dev_password"
-```
-
-**prod.tfvars**
-```hcl
-environment       = "prod"
-region            = "us-east-1"
-vpc_cidr          = "10.1.0.0/16"
-ecs_cluster_name  = "prod-cluster"
-db_user           = "prod_user"
-db_password       = "prod_password"
-```
-
-### 1.3. Use Variables in Terraform Configuration
-
-Replace hardcoded values with variables on the **main.tf**. 
-
-```hcl
-provider "aws" {
-  region = var.region
-}
-
-module "vpc" {
-  source  = "./modules/vpc"
-  cidr    = var.vpc_cidr
-  environment = var.environment
-}
-
-module "ecs" {
-  source       = "./modules/ecs"
-  cluster_name = var.ecs_cluster_name
-  vpc_id       = module.vpc.vpc_id
-  subnets      = module.vpc.public_subnets
-}
-
-module "rds" {
-  source      = "./modules/rds"
-  db_user     = var.db_user
-  db_password = var.db_password
-}
-```
+```bash
+git clone https://github.com/Here2ServeU/aws-FullStackApp-terraform/
 
 ### 1.4. Apply Terraform for Each Environment
 
@@ -144,9 +74,83 @@ terraform plan -var-file="prod.tfvars"
 terraform apply -var-file="prod.tfvars"
 ```
 
-## 2. CI/CD with Environment Variables
+## Step 2: Dockerize Your Application
 
-### 2.1. Parameterize CI/CD Workflows
+### 2.1. Front-End
+
+Navigate to the front-end directory:
+```bash
+cd t2s-courses-frontend
+```
+
+Build the Docker image: 
+```bash
+docker build -t t2s-courses-frontend .
+```
+
+### 2.2. Back-End
+
+Navigate to the back-end directory:
+```bash
+cd t2s-courses-backend
+```
+
+Build the Docker image:
+```bash
+docker build -t t2s-courses-backend .
+```
+
+### 2.3. Push Docker Images to Amazon ECR
+
+Authenticate with Amazon ECR:
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <ecr_repository_uri>
+```
+
+Push the images: 
+**Front-End**
+```bash
+docker tag t2s-courses-frontend:latest <ecr_repository_uri>/t2s-courses-frontend:latest
+docker push <ecr_repository_uri>/t2s-courses-frontend:latest
+```
+
+**Back-End**
+```bash
+docker tag t2s-courses-backend:latest <ecr_repository_uri>/t2s-courses-backend:latest
+docker push <ecr_repository_uri>/t2s-courses-backend:latest
+```
+
+## Step 3: Infrastructure Deployment with Terraform
+
+### Define Environment Variables
+
+Use environment-specific configurations in terraform.tfvars files:
+**dev.tfvars**:
+
+```hcl
+environment       = "dev"
+region            = "us-east-1"
+vpc_cidr          = "10.0.0.0/16"
+ecs_cluster_name  = "dev-cluster"
+```
+
+**prod.tfvars**:
+```hcl
+environment       = "prod"
+region            = "us-east-1"
+vpc_cidr          = "10.1.0.0/16"
+ecs_cluster_name  = "prod-cluster"
+```
+
+### Deploy the Infrastructure
+```bash
+terraform init  # To initialize Terraform
+terraform plan -var-file="dev.tfvars"  # To plan the infrastructure
+terraform apply -var-file="dev.tfvars"  # To apply the infrastructure
+```
+
+
+## Step 4: CI/CD Pipeline with GitHub Actions
 
 Pass environment variables in the CI/CD pipeline to support multiple environments.
 
@@ -200,7 +204,7 @@ jobs:
           --force-new-deployment
 ```
 
-### 2.2. Configure Task Definitions with Environment Variables
+## Step 5: Configure Task Definitions with Environment Variables
 
 Use ECS task definition templates for environment-specific variables.
 
@@ -226,7 +230,7 @@ Use ECS task definition templates for environment-specific variables.
 
 Use Terraform or AWS CLI to update task definitions dynamically based on variables.
 
-## 3. Monitoring and Environment-Specific Metrics
+## Step 6: Monitoring and Environment-Specific Metrics
 
 Configure CloudWatch dashboards and alarms per environment to track metrics.
 	
@@ -236,13 +240,13 @@ Configure CloudWatch dashboards and alarms per environment to track metrics.
 2.	Set Environment-Specific Alarms:
 - Example: CPU utilization > 80% triggers scale-out for the dev or prod cluster.
 
-## 4. Benefits of Using Variables and Environments
+**Benefits of Using Variables and Environments**
 - **Flexibility**: Easily switch between environments without changing code.
 - **Scalability**: Separate environments for isolated testing and production.
 - **Automation**: Fully automated deployments with environment-specific configurations.
 - **Consistency**: Enforce standards and reduce errors by reusing configurations.
 
-## Clean Up
+## Step 7: Clean Up
 
 To remove resources and avoid incurring charges:
 - Destroy Terraform-managed resources:
@@ -260,8 +264,6 @@ aws ecr batch-delete-image --repository-name backend --image-ids imageTag=latest
 Remove CloudWatch Logs and alarms manually if not managed by Terraform.
 
 ---
-This project demonstrates a robust, scalable, and automated workflow for deploying a full-stack application using Terraform, Amazon ECS, and CI/CD pipelines. The use of variables and environments ensures flexibility and consistency across multiple stages of development.
-
-Feel free to contribute or customize based on your project requirements.
+This guide demonstrates deploying the T2S Courses app as a full-stack application using Terraform, Amazon ECS, and CI/CD pipelines. The fully automated, scalable, and environment-specific infrastructure ensures reliable deployments across development and production environments.
 
 
