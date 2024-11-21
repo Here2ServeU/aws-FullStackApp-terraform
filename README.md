@@ -61,6 +61,8 @@ git clone https://github.com/Here2ServeU/t2s-courses-fullstack-deployment
 
 Specify the environment file using -var-file during deployment.
 
+Ensure that you replace the values on your dev.tfvars and prod.tfvars files. ***Use the correct values in your local environment,*** and **DO NOT keep them on GitHub.** 
+
 **For Dev Environment:**
 ```bash
 terraform init
