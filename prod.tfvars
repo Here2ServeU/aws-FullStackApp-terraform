@@ -1,0 +1,6 @@
+environment       = "prod"
+region            = "us-east-1"
+vpc_cidr          = "10.1.0.0/16"
+ecs_cluster_name  = "prod-cluster"
+db_user           = "prod_user"
+db_password       = "prod_password"
