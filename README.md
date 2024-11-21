@@ -54,7 +54,8 @@ The architecture includes:
 ## Step 1: Clone the Repositories
 
 ```bash
-git clone https://github.com/Here2ServeU/aws-FullStackApp-terraform/
+git clone https://github.com/Here2ServeU/t2s-courses-fullstack-deployment
+```
 
 ### 1.4. Apply Terraform for Each Environment
 
